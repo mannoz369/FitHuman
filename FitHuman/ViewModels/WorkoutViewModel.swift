@@ -35,6 +35,7 @@ class WorkoutViewModel: ObservableObject {
     private var planEndDateValue: Date?
     private var daysRemaining = 30
     private var backendSaysNeedsNewPlan = false
+    private var isLoadingInitialData = false
 
     struct StreakAnimation: Identifiable, Equatable {
         let id = UUID()
@@ -119,10 +120,13 @@ class WorkoutViewModel: ObservableObject {
     // MARK: - Data Loading
     func loadInitialData(force: Bool = false) async {
         guard force || !hasLoadedInitialData else { return }
+        guard !isLoadingInitialData else { return }
 
+        isLoadingInitialData = true
         isLoadingPlan = true
         syncErrorMessage = nil
         defer {
+            isLoadingInitialData = false
             hasLoadedInitialData = true
             isLoadingPlan = false
         }
@@ -202,15 +206,19 @@ class WorkoutViewModel: ObservableObject {
     func loadCaloriesSummary() async {
         isLoadingCaloriesSummary = true
         caloriesSummaryErrorMessage = nil
+        defer {
+            isLoadingCaloriesSummary = false
+        }
 
         do {
             caloriesSummary = try await apiClient.getWorkoutCaloriesSummary()
         } catch {
-            guard !Self.isCancellation(error) else { return }
+            guard !Self.isCancellation(error) else {
+                caloriesSummaryErrorMessage = nil
+                return
+            }
             caloriesSummaryErrorMessage = error.localizedDescription
         }
-
-        isLoadingCaloriesSummary = false
     }
 
     func clearCompletedWorkoutStreakAnimation() {
@@ -444,12 +452,18 @@ class WorkoutViewModel: ObservableObject {
     }
 
     private func setSyncError(_ error: Error) {
-        guard !Self.isCancellation(error) else { return }
+        guard !Self.isCancellation(error) else {
+            syncErrorMessage = nil
+            return
+        }
         syncErrorMessage = error.localizedDescription
     }
 
     private func setGenerationError(_ error: Error) {
-        guard !Self.isCancellation(error) else { return }
+        guard !Self.isCancellation(error) else {
+            generationErrorMessage = nil
+            return
+        }
         generationErrorMessage = error.localizedDescription
     }
 

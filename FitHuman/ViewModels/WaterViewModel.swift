@@ -50,15 +50,20 @@ class WaterViewModel: ObservableObject {
     func loadToday() async {
         isLoading = true
         errorMessage = nil
+        defer {
+            isLoading = false
+        }
 
         do {
             apply(try await apiClient.getTodayWater())
             apply(try await apiClient.getWaterHistory(days: 7))
         } catch {
+            guard !Self.isCancellation(error) else {
+                errorMessage = nil
+                return
+            }
             errorMessage = error.localizedDescription
         }
-
-        isLoading = false
     }
 
     func addGlass() {
@@ -74,6 +79,10 @@ class WaterViewModel: ObservableObject {
                 }
                 apply(try await apiClient.getWaterHistory(days: 7))
             } catch {
+                guard !Self.isCancellation(error) else {
+                    errorMessage = nil
+                    return
+                }
                 errorMessage = error.localizedDescription
             }
         }
@@ -117,6 +126,15 @@ class WaterViewModel: ObservableObject {
         formatter.timeZone = .current
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: date)
+    }
+
+    private static func isCancellation(_ error: Error) -> Bool {
+        if error is CancellationError {
+            return true
+        }
+
+        let nsError = error as NSError
+        return nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled
     }
 
     private func syncHydrationReminders(for log: WaterLog) {

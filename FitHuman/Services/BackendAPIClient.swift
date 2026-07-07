@@ -6,7 +6,7 @@ final class BackendAPIClient {
     private let baseURL: URL
     private let session: URLSession
 
-    init(baseURL: URL = AppConfig.backendBaseURL, session: URLSession = .shared) {
+    init(baseURL: URL = AppConfig.backendBaseURL, session: URLSession = .fithumanAPI) {
         self.baseURL = baseURL
         self.session = session
     }
@@ -152,7 +152,20 @@ final class BackendAPIClient {
             request.addValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         }
 
-        let (data, response) = try await session.data(for: request)
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch let apiError as APIError {
+            throw apiError
+        } catch {
+            if Self.isCancellation(error) {
+                throw CancellationError()
+            }
+
+            throw APIError.network(url: url, message: Self.networkMessage(from: error))
+        }
+
         guard let httpResponse = response as? HTTPURLResponse else {
             throw APIError.invalidResponse
         }
@@ -263,12 +276,31 @@ final class BackendAPIClient {
             return error.localizedDescription
         }
     }
+
+    private static func networkMessage(from error: Error) -> String {
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain {
+            return "\(nsError.localizedDescription) (NSURLErrorDomain \(nsError.code))"
+        }
+
+        return error.localizedDescription
+    }
+
+    private static func isCancellation(_ error: Error) -> Bool {
+        if error is CancellationError {
+            return true
+        }
+
+        let nsError = error as NSError
+        return nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled
+    }
 }
 
 enum APIError: LocalizedError {
     case invalidURL
     case invalidResponse
     case missingToken
+    case network(url: URL, message: String)
     case server(statusCode: Int, message: String)
     case decoding(String)
 
@@ -280,10 +312,22 @@ enum APIError: LocalizedError {
             return "Invalid backend response."
         case .missingToken:
             return "Please log in again."
+        case .network(let url, let message):
+            return "Could not reach \(url.absoluteString): \(message)"
         case .server(let statusCode, let message):
             return "Request failed (\(statusCode)): \(message)"
         case .decoding(let message):
             return message
         }
     }
+}
+
+private extension URLSession {
+    static let fithumanAPI: URLSession = {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 120
+        configuration.timeoutIntervalForResource = 180
+        configuration.waitsForConnectivity = true
+        return URLSession(configuration: configuration)
+    }()
 }

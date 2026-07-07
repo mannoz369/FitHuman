@@ -253,7 +253,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
-				FITHUMAN_API_BASE_URL = "http://127.0.0.1:8000/api/v1/";
+				FITHUMAN_API_BASE_URL = "https://fithuman.onrender.com/api/v1/";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_FITHUMAN_API_BASE_URL = "$(FITHUMAN_API_BASE_URL)";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -299,7 +299,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
-				FITHUMAN_API_BASE_URL = "https://your-backend-host.example.com/api/v1/";
+				FITHUMAN_API_BASE_URL = "https://fithuman.onrender.com/api/v1/";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_FITHUMAN_API_BASE_URL = "$(FITHUMAN_API_BASE_URL)";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;

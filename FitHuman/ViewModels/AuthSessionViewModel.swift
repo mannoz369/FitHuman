@@ -33,6 +33,10 @@ final class AuthSessionViewModel: ObservableObject {
             currentUser = try await apiClient.getCurrentUser()
             authErrorMessage = nil
         } catch {
+            guard !Self.isCancellation(error) else {
+                isCheckingSession = false
+                return
+            }
             KeychainTokenStore.delete()
             apiClient.accessToken = nil
             currentUser = nil
@@ -71,9 +75,23 @@ final class AuthSessionViewModel: ObservableObject {
             apiClient.accessToken = response.accessToken
             currentUser = response.user
         } catch {
+            guard !Self.isCancellation(error) else {
+                authErrorMessage = nil
+                isWorking = false
+                return
+            }
             authErrorMessage = error.localizedDescription
         }
 
         isWorking = false
+    }
+
+    private static func isCancellation(_ error: Error) -> Bool {
+        if error is CancellationError {
+            return true
+        }
+
+        let nsError = error as NSError
+        return nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled
     }
 }

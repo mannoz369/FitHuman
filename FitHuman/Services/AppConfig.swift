@@ -1,22 +1,22 @@
 import Foundation
 
 enum AppConfig {
+    private static let deployedBackendBaseURL = "https://fithuman.onrender.com/api/v1/"
+
     static let backendBaseURL: URL = {
         let configuredValue = Bundle.main
             .object(forInfoDictionaryKey: "FITHUMAN_API_BASE_URL") as? String
         let value = configuredValue?.trimmingCharacters(in: .whitespacesAndNewlines)
 
         #if DEBUG
-        let resolvedValue = value?.isEmpty == false
+        let resolvedValue = Self.isUsableBackendURL(value)
             ? value!
-            : "http://127.0.0.1:8000/api/v1/"
+            : Self.deployedBackendBaseURL
         #else
         guard let resolvedValue = value,
               resolvedValue.isEmpty == false,
               resolvedValue.hasPrefix("https://"),
-              resolvedValue.contains("your-backend-host") == false,
-              resolvedValue.contains("localhost") == false,
-              resolvedValue.contains("127.0.0.1") == false else {
+              Self.isLocalOrPlaceholder(resolvedValue) == false else {
             preconditionFailure(
                 "Set FITHUMAN_API_BASE_URL to the production HTTPS backend URL before archiving."
             )
@@ -29,4 +29,18 @@ enum AppConfig {
 
         return url
     }()
+
+    private static func isUsableBackendURL(_ value: String?) -> Bool {
+        guard let value, value.isEmpty == false else {
+            return false
+        }
+
+        return isLocalOrPlaceholder(value) == false
+    }
+
+    private static func isLocalOrPlaceholder(_ value: String) -> Bool {
+        value.contains("your-backend-host")
+            || value.contains("localhost")
+            || value.contains("127.0.0.1")
+    }
 }
