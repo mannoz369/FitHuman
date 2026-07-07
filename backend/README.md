@@ -36,3 +36,7 @@ uv run uvicorn app.main:app --reload --port 8000
 ```
 
 Keep `.env` out of git. Store MongoDB Atlas and Gemini secrets only on the backend.
+
+## Deployment
+
+The backend includes a Dockerfile for production hosting. See `../DEPLOYMENT.md` for the backend environment variables, health check, and iOS production URL setup.

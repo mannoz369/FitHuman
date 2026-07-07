@@ -4,6 +4,13 @@ backend/.venv/
 backend/__pycache__/
 backend/.pytest_cache/
 backend/app/**/__pycache__/
+backend/tests/**/__pycache__/
 
 # macOS
 .DS_Store
+
+# Xcode local state
+FitHuman.xcodeproj/xcuserdata/
+FitHuman.xcodeproj/project.xcworkspace/xcuserdata/
+DerivedData/
+build/
