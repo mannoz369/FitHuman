@@ -1,4 +1,5 @@
-# FitHuman
+# FitHuman <img width="1024" height="1024" alt="Untitled design" src="https://github.com/user-attachments/assets/f3a71ce9-5080-4251-bdb0-a88fef4bf2aa" />
+
 
 FitHuman is an iOS fitness app that helps users build and follow a monthly workout plan, track daily hydration, monitor calories burned, and keep workout progress synced across sessions. The app is built with SwiftUI and uses a FastAPI backend for authentication, user profiles, workout plans, workout history, streaks, and water tracking.
 
